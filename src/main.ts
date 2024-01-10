@@ -3,6 +3,7 @@ import { Bot } from 'grammy';
 import { Logger, Storage } from '@utils';
 import { ChatCommands } from '@constants';
 import { getRedErrorMessage } from './utils/get-red-error-message.util';
+import { prepareHoroscope } from '@bot-actions';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
@@ -48,6 +49,7 @@ Promise.all([
         bot.api.setMyCommands([
           { command: ChatCommands.HOROSCOPE, description: 'Предскажи мой день?' },
         ]);
+        bot.command(...prepareHoroscope());
         bot.on('message', () => {
           Logger.info('Some message just passing by.');
         });
