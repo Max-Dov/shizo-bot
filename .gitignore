@@ -1,0 +1,7 @@
+config/.env.local
+
+node_modules
+build
+
+.idea
+.vscode

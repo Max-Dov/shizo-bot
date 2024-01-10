@@ -1,0 +1,1 @@
+export const JSON_STORAGE_INIT = {}
