@@ -75,21 +75,19 @@ export class Openai {
 
   static fetchVoiceMessage = async (userMessage: string) => {
     const botResponse = await Openai.fetchChatMessageReply(userMessage);
-
     Logger.info('Sending voice request to openai..');
     const voiceMessage = await Openai.instance.audio.speech.create({
       input: botResponse || 'Взрыв кабачка в коляске с поносом!',
       voice: 'onyx',
-      response_format: 'mp3',
+      response_format: 'opus',
       model: 'tts-1'
     });
     Logger.info('Request completed!');
-    const fileName = `./temp/voice-${new Date().toISOString()}.mp3`;
-    createFileSync(fileName);
-    const voiceBuffer = await voiceMessage.arrayBuffer();
-    const writableBuffer = Buffer.from(voiceBuffer);
-    writeFileSync(fileName, writableBuffer);
-    Logger.info('Voice file saved:', fileName);
+    const fileName = `./temp/voice-${new Date().getTime()}.ogg`;
+    await createFile(fileName);
+    Logger.info('Voice file created!', fileName);
+    await writeFile(fileName, Buffer.from(await voiceMessage.arrayBuffer()));
+    Logger.info('Voice file saved!', fileName);
     return fileName;
   };
 }
