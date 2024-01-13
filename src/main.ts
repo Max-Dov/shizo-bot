@@ -44,7 +44,7 @@ const chatgptPresetsPromise = ChatgptPresets.loadPresetsFile('./config/chatgpt-p
   .catch((error) => {
     Logger.error('Chatgpt presets file load failed.', error);
     isStartupSuccessful = false;
-  })
+  });
 
 
 Promise.all([
@@ -63,11 +63,17 @@ Promise.all([
           { command: ChatCommands.DIVINATION, description: 'Предскажи мой день?' },
         ]);
         bot.command(...prepareDivination());
+        if (process.env.BOT_NAMES_REGEXP) {
+          bot.hears(new RegExp(process.env.BOT_NAMES_REGEXP), (ctx) => {
+            Logger.command('Bot hears its name!');
+            giveRandomAnswer(ctx);
+          });
+        }
         bot.on('message', (ctx) => {
           Logger.info('Some message just passing by.');
           const shouldRespond = shouldRandomlyRespond();
           if (shouldRespond) {
-            Logger.command('But shiz has something to say!')
+            Logger.command('But shiz has something to say!');
             giveRandomAnswer(ctx);
           }
         });
