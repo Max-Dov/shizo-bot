@@ -71,9 +71,11 @@ Promise.all([
         }
         bot.on('message', (ctx) => {
           Logger.info('Some message just passing by.');
+          const repliedToFirstName = ctx.message.reply_to_message?.from?.first_name;
+          const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
           const shouldRespond = shouldRandomlyRespond();
-          if (shouldRespond) {
-            Logger.command('But shiz has something to say!');
+          if (shouldRespond || isReplyToBot) {
+            Logger.command('But bot has something to say!', { shouldRespond, isReplyToBot });
             giveRandomAnswer(ctx);
           }
         });
