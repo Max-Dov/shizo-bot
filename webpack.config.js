@@ -1,3 +1,4 @@
+const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -50,4 +51,12 @@ module.exports = {
             bufferutil: 'commonjs bufferutil',
         },
     ],
+    plugins: [
+        new CopyPlugin({
+            patterns: [
+                {from: path.join('config', 'chatgpt-presets.local.json')},
+                {from: path.join('config', '.env.local')}
+            ],
+        }),
+    ]
 }

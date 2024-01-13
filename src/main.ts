@@ -13,12 +13,9 @@ let isStartupSuccessful = true;
 
 /**
  * Loading environment variables into app.
+ * Only for local development.
  */
-configDotenv({
-  // uncomment below if you don't have .env.local file
-  // path: './config/.env.default'
-  path: './config/.env.local',
-});
+configDotenv({ path: './.env.local' });
 
 const envVariableSuccessIndicator = process.env.TEST_ENV_VARIABLE_HINT;
 if (envVariableSuccessIndicator) {
@@ -28,8 +25,10 @@ if (envVariableSuccessIndicator) {
   isStartupSuccessful = false;
 }
 
-Openai.initialize();
-Logger.goodInfo('Openai client: created!');
+if (isStartupSuccessful) {
+  Openai.initialize();
+  Logger.goodInfo('Openai client: created!');
+}
 
 /**
  * Loading or creating highly efficient persistent JSON database from disc.
@@ -41,7 +40,7 @@ const storageInitPromise = Storage.loadStorage()
     isStartupSuccessful = false;
   });
 
-const chatgptPresetsPromise = ChatgptPresets.loadPresetsFile('./config/chatgpt-presets.local.json')
+const chatgptPresetsPromise = ChatgptPresets.loadPresetsFile('./chatgpt-presets.local.json')
   .then(() => Logger.goodInfo('Chatgpt presets: loaded!'))
   .catch((error) => {
     Logger.error('Chatgpt presets file load failed.', error);

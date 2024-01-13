@@ -14,7 +14,7 @@ export class Storage {
    * Loads storage file into Storage. Expected to be called only once in the app.
    */
   static loadStorage = (): Promise<void> => {
-    const filePath = process.env.STORAGE_DIR || './build/storage.json';
+    const filePath = './storage.json';
     return pathExists(filePath)
       .then(exists => exists
         ? readJson(filePath)
