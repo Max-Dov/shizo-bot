@@ -1,3 +1,3 @@
 export enum ChatCommands {
-  HOROSCOPE = 'horoscope'
+  DIVINATION = 'divination'
 }

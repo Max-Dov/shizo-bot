@@ -1,1 +1,1 @@
-export * from './prepare-horoscope.action';
+export * from './prepare-divination.action';

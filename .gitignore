@@ -1,4 +1,5 @@
 config/.env.local
+config/chatgpt-presets.local.json
 
 node_modules
 build

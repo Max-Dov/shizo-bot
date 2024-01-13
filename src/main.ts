@@ -1,9 +1,9 @@
 import { configDotenv } from 'dotenv';
 import { Bot } from 'grammy';
-import { Logger, Storage } from '@utils';
+import { ChatgptPresets, Logger, Openai, Storage } from '@utils';
 import { ChatCommands } from '@constants';
 import { getRedErrorMessage } from './utils/get-red-error-message.util';
-import { prepareHoroscope } from '@bot-actions';
+import { prepareDivination } from '@bot-actions';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
@@ -25,6 +25,9 @@ if (envVariableSuccessIndicator) {
   isStartupSuccessful = false;
 }
 
+Openai.initialize();
+Logger.goodInfo('Openai client: created!');
+
 /**
  * Loading or creating highly efficient persistent JSON database from disc.
  */
@@ -35,8 +38,17 @@ const storageInitPromise = Storage.loadStorage()
     isStartupSuccessful = false;
   });
 
+const chatgptPresetsPromise = ChatgptPresets.loadPresetsFile('./config/chatgpt-presets.local.json')
+  .then(() => Logger.goodInfo('Chatgpt presets: loaded!'))
+  .catch((error) => {
+    Logger.error('Chatgpt presets file load failed.', error);
+    isStartupSuccessful = false;
+  })
+
+
 Promise.all([
   storageInitPromise,
+  chatgptPresetsPromise,
 ])
   .then(() => {
     /**
@@ -47,9 +59,9 @@ Promise.all([
       if (isStartupSuccessful) {
         bot = new Bot(process.env.BOT_TOKEN || '');
         bot.api.setMyCommands([
-          { command: ChatCommands.HOROSCOPE, description: 'Предскажи мой день?' },
+          { command: ChatCommands.DIVINATION, description: 'Предскажи мой день?' },
         ]);
-        bot.command(...prepareHoroscope());
+        bot.command(...prepareDivination());
         bot.on('message', () => {
           Logger.info('Some message just passing by.');
         });

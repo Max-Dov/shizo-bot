@@ -15,7 +15,7 @@ export const prepareBotCommandAction = (
   [
     command,
     ctx => {
-      Logger.command(chalk.bgBlue(command), 'command was called!');
+      Logger.command(chalk.bgBlue(command), 'command was called! From:', ctx.from?.username);
       try {
         commandHandler(ctx);
       } catch (error) {

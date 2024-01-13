@@ -15,7 +15,8 @@
     "chalk": "^5.3.0",
     "dotenv": "^16.3.1",
     "fs-extra": "^11.2.0",
-    "grammy": "^1.20.3"
+    "grammy": "^1.20.3",
+    "openai": "^4.24.3"
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",
