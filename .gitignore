@@ -3,6 +3,7 @@ config/chatgpt-presets.local.json
 
 node_modules
 build
+temp
 
 .idea
 .vscode

@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import { ChatgptPresets, getDayStats, Logger, SituationTypes } from '@utils';
+import { createFile, createFileSync, writeFile, writeFileSync } from 'fs-extra';
 
 export class Openai {
   static instance: OpenAI;
@@ -70,5 +71,25 @@ export class Openai {
     Logger.info('Request completed! Tokens: ', response.usage);
 
     return response.choices[0].message.content;
+  };
+
+  static fetchVoiceMessage = async (userMessage: string) => {
+    const botResponse = await Openai.fetchChatMessageReply(userMessage);
+
+    Logger.info('Sending voice request to openai..');
+    const voiceMessage = await Openai.instance.audio.speech.create({
+      input: botResponse || 'Взрыв кабачка в коляске с поносом!',
+      voice: 'onyx',
+      response_format: 'mp3',
+      model: 'tts-1'
+    });
+    Logger.info('Request completed!');
+    const fileName = `./temp/voice-${new Date().toISOString()}.mp3`;
+    createFileSync(fileName);
+    const voiceBuffer = await voiceMessage.arrayBuffer();
+    const writableBuffer = Buffer.from(voiceBuffer);
+    writeFileSync(fileName, writableBuffer);
+    Logger.info('Voice file saved:', fileName);
+    return fileName;
   };
 }

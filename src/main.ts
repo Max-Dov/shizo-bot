@@ -1,11 +1,12 @@
 import { configDotenv } from 'dotenv';
 import { Bot } from 'grammy';
-import { ChatgptPresets, Logger, Openai, Storage } from '@utils';
+import {
+  ChatgptPresets, Logger, Openai, Storage, getRedErrorMessage, shouldRandomlyReact,
+  shouldRandomlyRespond,
+  shouldRandomlySendVoice
+} from '@utils';
 import { ChatCommands } from '@constants';
-import { getRedErrorMessage } from './utils/get-red-error-message.util';
-import { giveRandomAnswer, prepareDivination } from '@bot-actions';
-import { shouldRandomlyReact, shouldRandomlyRespond } from './utils/should-randomly-respond.util';
-import { giveReaction } from './bot-actions/give-reaction.action';
+import { giveRandomAnswer, prepareDivination, giveReaction, sendVoice } from '@bot-actions';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
@@ -76,13 +77,18 @@ Promise.all([
           const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
           const shouldRespond = shouldRandomlyRespond();
           const shouldLeaveReaction = shouldRandomlyReact();
+          const shouldSendVoice = shouldRandomlySendVoice();
           if (shouldRespond || isReplyToBot) {
-            Logger.command('But bot has something to say!', { shouldRespond, isReplyToBot });
+            Logger.command('Bot has something to say!', { shouldRespond, isReplyToBot });
             giveRandomAnswer(ctx);
           }
           if (shouldLeaveReaction) {
             Logger.command('Bot wants to react!', { shouldLeaveReaction });
             giveReaction(ctx);
+          }
+          if (shouldSendVoice) {
+            Logger.command('Bot wants to leave a voice message!', { shouldSendVoice });
+            sendVoice(ctx);
           }
         });
         bot.catch((error) => {
