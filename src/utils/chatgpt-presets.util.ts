@@ -29,5 +29,6 @@ export class ChatgptPresets {
 }
 
 export enum SituationTypes {
-  DIVINATION = 'DIVINATION'
+  DIVINATION = 'DIVINATION',
+  REPLY_TO_MESSAGE = 'REPLY_TO_MESSAGE'
 }

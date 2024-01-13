@@ -3,7 +3,8 @@ import { Bot } from 'grammy';
 import { ChatgptPresets, Logger, Openai, Storage } from '@utils';
 import { ChatCommands } from '@constants';
 import { getRedErrorMessage } from './utils/get-red-error-message.util';
-import { prepareDivination } from '@bot-actions';
+import { giveRandomAnswer, prepareDivination } from '@bot-actions';
+import { shouldRandomlyRespond } from './utils/should-randomly-respond.util';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
@@ -62,11 +63,16 @@ Promise.all([
           { command: ChatCommands.DIVINATION, description: 'Предскажи мой день?' },
         ]);
         bot.command(...prepareDivination());
-        bot.on('message', () => {
+        bot.on('message', (ctx) => {
           Logger.info('Some message just passing by.');
+          const shouldRespond = shouldRandomlyRespond();
+          if (shouldRespond) {
+            Logger.command('But shiz has something to say!')
+            giveRandomAnswer(ctx);
+          }
         });
         bot.catch((error) => {
-          Logger.error('Bot unexpected error!', getRedErrorMessage(error));
+          Logger.error('Bot got an unexpected error!', getRedErrorMessage(error));
         });
         Logger.goodInfo('Bot protocols: declared!');
       }
