@@ -5,3 +5,8 @@ export const shouldRandomlyRespond = () => {
   const chance = Number(process.env.CHANCE_TO_RANDOMLY_RESPOND);
   return Math.random() < chance;
 }
+
+export const shouldRandomlyReact = () => {
+  const chance = Number(process.env.CHANCE_TO_RANDOMLY_REACT);
+  return Math.random() < chance;
+}

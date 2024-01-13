@@ -50,4 +50,25 @@ export class Openai {
 
     return response.choices[0].message.content;
   };
+
+  static fetchChatMessageReaction = async (userMessage: string) => {
+    const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.REACT_TO_MESSAGE);
+
+    Logger.info('Sending request to openai..');
+    const response = await Openai.instance.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { 'role': 'system', 'content': replyPreface, },
+        { 'role': 'user', 'content': userMessage, }
+      ],
+      temperature: 1.2,
+      max_tokens: 10,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+    });
+    Logger.info('Request completed! Tokens: ', response.usage);
+
+    return response.choices[0].message.content;
+  };
 }

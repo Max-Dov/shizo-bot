@@ -23,12 +23,13 @@ export class ChatgptPresets {
         Math.random() * presets.length
       )].trim().replaceAll('\n', '');
     } else {
-      throw Error(`Can not load chatgpt presets: ${ChatgptPresets.presetsJson}. Try loading if first.`)
+      throw Error(`Can not load chatgpt presets: ${ChatgptPresets.presetsJson}. Try loading if first.`);
     }
   };
 }
 
 export enum SituationTypes {
   DIVINATION = 'DIVINATION',
-  REPLY_TO_MESSAGE = 'REPLY_TO_MESSAGE'
+  REPLY_TO_MESSAGE = 'REPLY_TO_MESSAGE',
+  REACT_TO_MESSAGE = 'REACT_TO_MESSAGE',
 }

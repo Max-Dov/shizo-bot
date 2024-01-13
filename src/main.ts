@@ -4,7 +4,8 @@ import { ChatgptPresets, Logger, Openai, Storage } from '@utils';
 import { ChatCommands } from '@constants';
 import { getRedErrorMessage } from './utils/get-red-error-message.util';
 import { giveRandomAnswer, prepareDivination } from '@bot-actions';
-import { shouldRandomlyRespond } from './utils/should-randomly-respond.util';
+import { shouldRandomlyReact, shouldRandomlyRespond } from './utils/should-randomly-respond.util';
+import { giveReaction } from './bot-actions/give-reaction.action';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
@@ -74,9 +75,14 @@ Promise.all([
           const repliedToFirstName = ctx.message.reply_to_message?.from?.first_name;
           const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
           const shouldRespond = shouldRandomlyRespond();
+          const shouldLeaveReaction = shouldRandomlyReact();
           if (shouldRespond || isReplyToBot) {
             Logger.command('But bot has something to say!', { shouldRespond, isReplyToBot });
             giveRandomAnswer(ctx);
+          }
+          if (shouldLeaveReaction) {
+            Logger.command('Bot wants to react!', { shouldLeaveReaction });
+            giveReaction(ctx);
           }
         });
         bot.catch((error) => {
