@@ -1,30 +1,27 @@
 import chalk from 'chalk';
 
 /**
+ * "DD/MM/YYYY, HH:MM:SS.MS"
+ */
+const timeFormat = Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/Warsaw', // +01 STD, +02 DST
+  day: 'numeric',
+  month: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  second: 'numeric',
+  fractionalSecondDigits: 3,
+})
+
+/**
  * Simple logger that adds log type and date to log messages.
  */
 export class Logger {
-  /**
-   * Checks if number < 10, then appends '0' in front.
-   * @param number
-   */
-  private static check0 = (number: number): string =>
-    (number < 10 ? '0' : '') + number;
-
-  /**
-   * Returns current time in "HH:MM:SS.MS" format.
-   */
-  private static timeNow = (): string => {
-    const time = new Date();
-    const format = 'HH:MM:SS.MS';
-    return format
-      .replace('HH', Logger.check0(time.getHours()))
-      .replace('MM', Logger.check0(time.getMinutes()))
-      .replace('SS', Logger.check0(time.getSeconds()))
-      .replace('MS', time.getMilliseconds().toString());
-  };
+  private static timeNow = (): string => timeFormat.format(new Date())
 
   static info = (...messages: any[]) => console.info(
+    '   ', // padding
     chalk.bold(LogTypes.INFO),
     chalk.bgGray(Logger.timeNow()),
     ...messages,
@@ -32,15 +29,17 @@ export class Logger {
 
   /**
    * Prints info message in green for morale boost.
-   * Expected use case is "success checkpoints", like processing split cash command.
+   * Expected use case is "success checkpoints", like successful request.
    */
   static goodInfo = (...messages: any[]) => console.info(
+    '   ', // padding
     chalk.bold.bgGreen(LogTypes.INFO),
     chalk.bgGray(Logger.timeNow()),
     ...messages,
   );
 
   static error = (...messages: any[]) => console.error(
+    '  ', // padding
     chalk.bold.bgRed(LogTypes.ERROR),
     chalk.bgGray(Logger.timeNow()),
     ...messages,
@@ -59,10 +58,9 @@ export class Logger {
   );
 }
 
-// padding everything to be 7 symbols
 enum LogTypes {
-  INFO = '   INFO',
-  ERROR = '  ERROR',
+  INFO = 'INFO',
+  ERROR = 'ERROR',
   WARNING = 'WARNING',
   COMMAND = 'COMMAND'
 }
