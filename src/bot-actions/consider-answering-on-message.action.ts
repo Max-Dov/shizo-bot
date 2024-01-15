@@ -1,6 +1,6 @@
 import { CommandHandler } from '@models';
 import { Logger, shouldRandomlyReact, shouldRandomlyRespond, shouldRandomlySendVoice } from '@utils';
-import { giveRandomAnswer, giveReaction, sendVoice } from '@bot-actions';
+import { replyWithText, giveReaction, sendVoice } from '@bot-actions';
 
 export const considerAnsweringOnMessageAction =
   ({ isHearingBotName }: { isHearingBotName: boolean }): CommandHandler =>
@@ -10,7 +10,7 @@ export const considerAnsweringOnMessageAction =
       const shouldSendText = shouldRandomlyRespond();
       const shouldLeaveReaction = shouldRandomlyReact();
       const shouldSendVoice = shouldRandomlySendVoice();
-      const isPmToBot = false;
+      const isPmToBot = ctx.chat?.type === 'private';
       {
         const username = ctx.from?.username;
         const firstName = ctx.from?.first_name; // in case user set profile to private
@@ -26,16 +26,17 @@ export const considerAnsweringOnMessageAction =
           }
         );
       }
-      if (shouldSendText || isHearingBotName || isReplyToBot) {
-        Logger.command('Bot is going to give random answer!');
-        giveRandomAnswer(ctx);
+      if (isPmToBot || isHearingBotName || isReplyToBot || shouldSendText || shouldSendVoice) {
+        if (shouldSendVoice) {
+          Logger.command('Bot is going to send voice!');
+          sendVoice(ctx);
+        } else {
+          Logger.command('Bot is going to give random answer!');
+          replyWithText(ctx);
+        }
       }
       if (shouldLeaveReaction) {
         Logger.command('Bot is going to leave reaction!');
         giveReaction(ctx);
-      }
-      if (shouldSendVoice) {
-        Logger.command('Bot is going to send voice!');
-        sendVoice(ctx);
       }
     };
