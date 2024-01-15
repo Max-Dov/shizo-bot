@@ -1,6 +1,12 @@
 import { CommandHandler } from '@models';
-import { Logger, shouldRandomlyReact, shouldRandomlyRespond, shouldRandomlySendVoice } from '@utils';
-import { replyWithText, giveReaction, sendVoice } from '@bot-actions';
+import {
+  Logger,
+  shouldRandomlyReact,
+  shouldRandomlyRespond,
+  shouldRandomlySendPainting,
+  shouldRandomlySendVoice
+} from '@utils';
+import { replyWithText, giveReaction, sendVoice, sendDrawing } from '@bot-actions';
 
 export const considerAnsweringOnMessageAction =
   ({ isHearingBotName }: { isHearingBotName: boolean }): CommandHandler =>
@@ -10,6 +16,7 @@ export const considerAnsweringOnMessageAction =
       const shouldSendText = shouldRandomlyRespond();
       const shouldLeaveReaction = shouldRandomlyReact();
       const shouldSendVoice = shouldRandomlySendVoice();
+      const shouldDrawPicture = shouldRandomlySendPainting();
       const isPmToBot = ctx.chat?.type === 'private';
       {
         const username = ctx.from?.username;
@@ -23,6 +30,7 @@ export const considerAnsweringOnMessageAction =
             shouldSendText,
             shouldSendVoice,
             shouldLeaveReaction,
+            shouldDrawPicture,
           }
         );
       }
@@ -38,5 +46,9 @@ export const considerAnsweringOnMessageAction =
       if (shouldLeaveReaction) {
         Logger.command('Bot is going to leave reaction!');
         giveReaction(ctx);
+      }
+      if (shouldDrawPicture) {
+        Logger.command("Bot is going to draw picture!");
+        sendDrawing(ctx);
       }
     };

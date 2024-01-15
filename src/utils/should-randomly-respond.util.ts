@@ -15,3 +15,8 @@ export const shouldRandomlySendVoice = () => {
   const chance = Number(process.env.CHANCE_TO_RANDOMLY_SEND_VOICE);
   return Math.random() < chance;
 }
+
+export const shouldRandomlySendPainting = () => {
+  const chance = Number(process.env.CHANCE_TO_RANDOMLY_DRAW_PICTURE);
+  return Math.random() < chance;
+}

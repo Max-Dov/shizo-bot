@@ -90,4 +90,16 @@ export class Openai {
     Logger.info('Voice file saved!', fileName);
     return fileName;
   };
+
+  static fetchDrawing = async (drawingName: string) => {
+    Logger.info('Sending image request to OpenAI (IMAGE)..');
+    const imageUrl = await Openai.instance.images.generate({
+      model: "dall-e-3",
+      prompt: drawingName,
+      size: "1024x1024",
+      n: 1,
+    })
+    Logger.info('Request completed (IMAGE)!');
+    return imageUrl.data[0].url;
+  }
 }
