@@ -5,7 +5,7 @@ import {
   Logger,
   Openai,
   Storage,
-  getRedErrorMessage
+  getRedErrorMessage, Replicateai
 } from '@utils';
 import { ChatCommands } from '@constants';
 import { prepareDivination, considerAnsweringOnMessageAction } from '@bot-actions';
@@ -28,7 +28,10 @@ if (envVariableSuccessIndicator) {
 
 if (isStartupSuccessful) {
   Openai.initialize();
-  Logger.goodInfo('Openai client: created!');
+  Logger.goodInfo('OpenAI client: created!');
+
+  Replicateai.initialize();
+  Logger.goodInfo('ReplicateAI client: created!');
 }
 
 /**

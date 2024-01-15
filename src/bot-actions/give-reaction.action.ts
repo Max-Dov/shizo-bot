@@ -27,6 +27,8 @@ export const giveReaction: CommandHandler = async (ctx) => {
         replyReaction = '🗿';
       }
       ctx.react(replyReaction as ReactionTypeEmoji['emoji']);
+    } else {
+      Logger.info('Message with no text - would not send reaction');
     }
   }
 };
