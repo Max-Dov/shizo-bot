@@ -3,6 +3,8 @@ import { JsonStorage } from '@models';
 import { JSON_STORAGE_INIT } from '@constants';
 import { Logger } from '@utils';
 
+const STORAGE_DIR = './storage.json';
+
 /**
  * Provides static methods to access JSON storage.
  * TODO think of better (safer I guess) storage communication implementation.
@@ -13,21 +15,16 @@ export class Storage {
   /**
    * Loads storage file into Storage. Expected to be called only once in the app.
    */
-  static loadStorage = (): Promise<void> => {
-    const filePath = './storage.json';
-    return pathExists(filePath)
-      .then(exists => exists
-        ? readJson(filePath)
-        : writeJson(filePath, JSON_STORAGE_INIT, { spaces: 2 }).then(() => readJson(filePath)))
-      .then((storage: JsonStorage) => {
-        Storage.storage = storage;
-      });
+  static loadStorage = async () => {
+    const doesPathExists = await pathExists(STORAGE_DIR);
+    if (!doesPathExists) {
+      await writeJson(STORAGE_DIR, JSON_STORAGE_INIT, { spaces: 2 });
+    }
+    Storage.storage = readJson(STORAGE_DIR);
   };
 
-  static saveStorage = (): Promise<void> => {
-    const filePath = process.env.STORAGE_DIR || './build/storage.json';
-    const promise = writeJson(filePath, Storage.storage, { spaces: 2 });
-    promise.then(() => Logger.info('Storage saved'));
-    return promise;
+  static saveStorage = async () => {
+    await writeJson(STORAGE_DIR, Storage.storage, { spaces: 2 });
+    Logger.info('Storage saved');
   };
 }

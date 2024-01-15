@@ -1,22 +1,23 @@
 import { configDotenv } from 'dotenv';
 import { Bot } from 'grammy';
 import {
-  ChatgptPresets, Logger, Openai, Storage, getRedErrorMessage, shouldRandomlyReact,
-  shouldRandomlyRespond,
-  shouldRandomlySendVoice
+  ChatgptPresets,
+  Logger,
+  Openai,
+  Storage,
+  getRedErrorMessage
 } from '@utils';
 import { ChatCommands } from '@constants';
-import { giveRandomAnswer, prepareDivination, giveReaction, sendVoice } from '@bot-actions';
+import { prepareDivination, considerAnsweringOnMessageAction } from '@bot-actions';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
+Logger.logTimeZone();
 
 /**
  * Loading environment variables into app.
- * Only for local development.
  */
 configDotenv({ path: './.env.local' });
-
 const envVariableSuccessIndicator = process.env.TEST_ENV_VARIABLE_HINT;
 if (envVariableSuccessIndicator) {
   Logger.goodInfo('Env variables:', envVariableSuccessIndicator);
@@ -33,83 +34,62 @@ if (isStartupSuccessful) {
 /**
  * Loading or creating highly efficient persistent JSON database from disc.
  */
-const storageInitPromise = Storage.loadStorage()
-  .then(() => Logger.goodInfo('JSON storage: loaded!'))
-  .catch((error) => {
-    Logger.error('JSON storage initialization/load failed.', error);
-    isStartupSuccessful = false;
-  });
+try {
+  await Storage.loadStorage();
+  Logger.goodInfo('JSON storage: loaded!');
+} catch (error) {
+  Logger.error('JSON storage initialization/load failed.', getRedErrorMessage(error));
+  isStartupSuccessful = false;
+}
 
-const chatgptPresetsPromise = ChatgptPresets.loadPresetsFile('./chatgpt-presets.local.json')
-  .then(() => Logger.goodInfo('Chatgpt presets: loaded!'))
-  .catch((error) => {
-    Logger.error('Chatgpt presets file load failed.', error);
-    isStartupSuccessful = false;
-  });
+/**
+ * Loading chatgpt prompt presets.
+ */
+try {
+  await ChatgptPresets.loadPresetsFile('./chatgpt-presets.local.json');
+  Logger.goodInfo('Chatgpt presets: loaded!');
+} catch (error) {
+  Logger.error('Chatgpt presets file load failed.', getRedErrorMessage(error));
+  isStartupSuccessful = false;
+}
 
+/**
+ * Declaring bot protocols.
+ */
+let bot: Bot;
+const botName = new RegExp(process.env.BOT_NAMES_REGEXP as string, 'i');
+try {
+  if (isStartupSuccessful) {
+    bot = new Bot(process.env.BOT_TOKEN || '');
+    bot.api.setMyCommands([
+      { command: ChatCommands.DIVINATION, description: 'Предскажи мой день?' },
+    ]);
+    bot.command(...prepareDivination());
+    bot.hears(botName, considerAnsweringOnMessageAction({isHearingBotName: true}));
+    bot.on('message', considerAnsweringOnMessageAction({isHearingBotName: false}));
+    bot.catch((error) => {
+      Logger.error('Bot got an unexpected error!', getRedErrorMessage(error));
+    });
+    Logger.goodInfo('Bot protocols: declared!');
+  }
+} catch (error) {
+  Logger.error('Encountered error while initializing bot protocols:', getRedErrorMessage(error));
+  isStartupSuccessful = false;
+}
 
-Promise.all([
-  storageInitPromise,
-  chatgptPresetsPromise,
-])
-  .then(() => {
-    /**
-     * Declaring bot protocols.
-     */
-    let bot: Bot;
-    try {
-      if (isStartupSuccessful) {
-        bot = new Bot(process.env.BOT_TOKEN || '');
-        bot.api.setMyCommands([
-          { command: ChatCommands.DIVINATION, description: 'Предскажи мой день?' },
-        ]);
-        bot.command(...prepareDivination());
-        if (process.env.BOT_NAMES_REGEXP) {
-          bot.hears(new RegExp(process.env.BOT_NAMES_REGEXP), (ctx) => {
-            Logger.command('Bot hears its name!');
-            giveRandomAnswer(ctx);
-          });
-        }
-        bot.on('message', (ctx) => {
-          Logger.info('Some message just passing by.');
-          const repliedToFirstName = ctx.message.reply_to_message?.from?.first_name;
-          const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
-          const shouldRespond = shouldRandomlyRespond();
-          const shouldLeaveReaction = shouldRandomlyReact();
-          const shouldSendVoice = shouldRandomlySendVoice();
-          if (shouldRespond || isReplyToBot) {
-            Logger.command('Bot has something to say!', { shouldRespond, isReplyToBot });
-            giveRandomAnswer(ctx);
-          }
-          if (shouldLeaveReaction) {
-            Logger.command('Bot wants to react!', { shouldLeaveReaction });
-            giveReaction(ctx);
-          }
-          if (shouldSendVoice) {
-            Logger.command('Bot wants to leave a voice message!', { shouldSendVoice });
-            sendVoice(ctx);
-          }
-        });
-        bot.catch((error) => {
-          Logger.error('Bot got an unexpected error!', getRedErrorMessage(error));
-        });
-        Logger.goodInfo('Bot protocols: declared!');
-      }
-    } catch (error) {
-      Logger.error('Encountered error while initializing bot protocols:', getRedErrorMessage(error));
-      isStartupSuccessful = false;
-    } finally {
-      /**
-       * Waking up bot.
-       */
-      if (isStartupSuccessful) {
-        bot!.start().catch((error) => {
-          Logger.error('Bot unexpected error!', getRedErrorMessage(error));
-        });
-        Logger.goodInfo('Bot status: ready and working!');
-        Logger.info('Bot started in', new Date().getTime() - startTime, 'ms');
-      } else {
-        Logger.error('Startup was not successful thus bot was not started with broken config to prevent unexpected damage.');
-      }
-    }
-  });
+/**
+ * Waking up bot.
+ */
+try {
+  if (isStartupSuccessful) {
+    bot!.start();
+    Logger.goodInfo('Bot status: ready and working!');
+    Logger.info('Startup time:', new Date().getTime() - startTime, 'ms');
+  }
+} catch (error) {
+  Logger.error('Bot unexpected error!', getRedErrorMessage(error));
+}
+
+if (!isStartupSuccessful) {
+  Logger.error('Startup was not successful. Bot was not started with broken config to prevent unexpected damage.');
+}

@@ -12,16 +12,16 @@ const timeFormat = Intl.DateTimeFormat('en-GB', {
   minute: 'numeric',
   second: 'numeric',
   fractionalSecondDigits: 3,
-})
+});
 
 /**
  * Simple logger that adds log type and date to log messages.
  */
 export class Logger {
-  private static timeNow = (): string => timeFormat.format(new Date())
+  private static timeNow = () => timeFormat.format(new Date());
+  static logTimeZone = () => Logger.info('Logger time zone:', timeFormat.resolvedOptions().timeZone);
 
   static info = (...messages: any[]) => console.info(
-    '   ', // padding
     chalk.bold(LogTypes.INFO),
     chalk.bgGray(Logger.timeNow()),
     ...messages,
@@ -32,14 +32,12 @@ export class Logger {
    * Expected use case is "success checkpoints", like successful request.
    */
   static goodInfo = (...messages: any[]) => console.info(
-    '   ', // padding
     chalk.bold.bgGreen(LogTypes.INFO),
     chalk.bgGray(Logger.timeNow()),
     ...messages,
   );
 
   static error = (...messages: any[]) => console.error(
-    '  ', // padding
     chalk.bold.bgRed(LogTypes.ERROR),
     chalk.bgGray(Logger.timeNow()),
     ...messages,
