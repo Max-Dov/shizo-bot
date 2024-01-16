@@ -14,7 +14,8 @@ export const giveReaction: CommandHandler = async (ctx) => {
       text,
     } = messageToReply;
     const chatId = chat.id;
-    ctx.api.sendChatAction(chatId, 'choose_sticker', { message_thread_id });
+    ctx.api.sendChatAction(chatId, 'choose_sticker', { message_thread_id })
+      .catch(error => Logger.error(error.message));
     if (text) {
       let replyReaction = await Openai.fetchChatMessageReaction(text);
       if (!replyReaction) {
@@ -26,7 +27,8 @@ export const giveReaction: CommandHandler = async (ctx) => {
         Logger.warning('Openai sent reaction outside of allowed reactions set.', { replyReaction });
         replyReaction = '🗿';
       }
-      ctx.react(replyReaction as ReactionTypeEmoji['emoji']);
+      ctx.react(replyReaction as ReactionTypeEmoji['emoji'])
+        .catch(error => Logger.error(error.message));
     } else {
       Logger.info('Message with no text - would not send reaction');
     }

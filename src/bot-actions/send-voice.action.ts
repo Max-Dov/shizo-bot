@@ -1,5 +1,5 @@
 import { CommandHandler } from '@models';
-import { Logger, Openai, Replicateai } from '@utils';
+import { Logger, Openai, prepareMessageThreadId } from '@utils';
 import { InputFile } from 'grammy';
 
 export const sendVoice: CommandHandler = async (ctx) => {
@@ -11,24 +11,41 @@ export const sendVoice: CommandHandler = async (ctx) => {
       text,
       caption,
       message_id,
+      is_topic_message,
     } = messageToReply;
     const chatId = chat.id;
-    ctx.api.sendChatAction(chatId, 'record_voice', { message_thread_id });
+    ctx.api.sendChatAction(chatId, 'record_voice', {
+      ...prepareMessageThreadId({
+        message_thread_id,
+        is_topic_message
+      })
+    }).catch(error => Logger.error(error.message));
 
     const imageId = ctx.message?.photo?.[0].file_id;
     let captionWithDescription = caption;
     if (imageId) {
-      Logger.info('User message contains image, will read it.')
-      const imageDescription = await Replicateai.explainImage(imageId);
+      Logger.info('User message contains image, will read it.');
+      const imageDescription = await Openai.explainImage(imageId);
       captionWithDescription = (caption || '') + `, прикрепляю картинку: ${imageDescription}`;
     }
 
     const userMessage = text || captionWithDescription;
     if (userMessage) {
+      ctx.api.sendChatAction(chatId, 'record_voice', {
+        ...prepareMessageThreadId({
+          message_thread_id,
+          is_topic_message
+        })
+      }).catch(error => Logger.error(error.message));
+
       const voiceFile = await Openai.fetchVoiceMessage(userMessage);
-      ctx.replyWithVoice(new InputFile(voiceFile), { message_thread_id, reply_to_message_id: message_id });
-    } else {
-      ctx.reply('Чё?', { message_thread_id, reply_to_message_id: message_id });
+      ctx.replyWithVoice(new InputFile(voiceFile), {
+        reply_to_message_id: message_id,
+        ...prepareMessageThreadId({
+          message_thread_id,
+          is_topic_message
+        })
+      }).catch(error => Logger.error(error.message));
     }
   }
 };

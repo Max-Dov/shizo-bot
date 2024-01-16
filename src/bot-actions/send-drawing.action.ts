@@ -1,5 +1,5 @@
 import { CommandHandler } from '@models';
-import { Openai } from '@utils';
+import { Logger, Openai, prepareMessageThreadId } from '@utils';
 
 export const sendDrawing: CommandHandler = async (ctx) => {
   const messageToReply = ctx.message;
@@ -7,15 +7,38 @@ export const sendDrawing: CommandHandler = async (ctx) => {
   if (messageToReply) {
     const {
       message_thread_id,
+      is_topic_message,
       chat,
     } = messageToReply;
     const chatId = chat.id;
+    ctx.api.sendChatAction(chatId, 'upload_photo', {
+      ...prepareMessageThreadId({
+        message_thread_id,
+        is_topic_message
+      })
+    }).catch(error => Logger.error(error.message));
+
     const drawingName = await Openai.fetchDrawingName();
     if (drawingName) {
-      const image = await Openai.fetchDrawing(drawingPrompt(drawingName));
-      if (image) {
-        ctx.api.sendChatAction(chatId, 'upload_photo', { message_thread_id });
-        ctx.replyWithPhoto(image, { message_thread_id, caption: drawingName });
+      try {
+        const image = await Openai.fetchDrawing(drawingPrompt(drawingName));
+        if (image) {
+          ctx.api.sendChatAction(chatId, 'upload_photo', {
+            ...prepareMessageThreadId({
+              message_thread_id,
+              is_topic_message
+            })
+          }).catch(error => Logger.error(error.message));
+          ctx.replyWithPhoto(image, {
+            caption: drawingName,
+            ...prepareMessageThreadId({
+              message_thread_id,
+              is_topic_message
+            })
+          }).catch(error => Logger.error(error.message));
+        }
+      } catch (error) {
+        Logger.error('sendDrawing action crashed - probably due to content filters:', (error as Error).message)
       }
     }
   }

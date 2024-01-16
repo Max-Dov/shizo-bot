@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import { ChatgptPresets, getDayStats, Logger, SituationTypes } from '@utils';
+import { ChatgptPresets, fetchImageUrlByImageId, getDayStats, Logger, SituationTypes } from '@utils';
 import { createFile, createFileSync, writeFile, writeFileSync } from 'fs-extra';
 
 export class Openai {
@@ -98,7 +98,7 @@ export class Openai {
       input: botResponse || 'Взрыв кабачка в коляске с поносом!',
       voice: 'onyx',
       response_format: 'opus',
-      model: 'tts-1'
+      model: 'tts-1',
     });
     Logger.info('Request completed (VOICE)!');
     const fileName = `./temp/voice-${new Date().getTime()}.ogg`;
@@ -109,6 +109,9 @@ export class Openai {
     return fileName;
   };
 
+  /**
+   * Note: content policy is too strict on this one and often returns 400.
+   */
   static fetchDrawing = async (drawingName: string) => {
     Logger.info('Sending image request to OpenAI (IMAGE)..');
     const imageUrl = await Openai.instance.images.generate({
@@ -119,5 +122,27 @@ export class Openai {
     });
     Logger.info('Request completed (IMAGE)!');
     return imageUrl.data[0].url;
+  };
+
+  static explainImage = async (imageId: string) => {
+    const imageUrl = await fetchImageUrlByImageId(imageId);
+    if (imageUrl) {
+      Logger.info('Sending "Explain Image" request to OPENAI (EXPLAIN_IMAGE)..');
+      const response = await Openai.instance.chat.completions.create({
+        model: 'gpt-4-vision-preview',
+        max_tokens: 500,
+        messages: [{
+          role: 'user', content: [{ 'type': 'text', 'text': 'Что на картинке?' }, {
+            type: 'image_url',
+            image_url: {
+              url: imageUrl,
+              detail: 'auto'
+            }
+          }]
+        }]
+      });
+      Logger.info('Request completed (EXPLAIN_IMAGE)!..');
+      return response.choices[0].message.content;
+    }
   };
 }
