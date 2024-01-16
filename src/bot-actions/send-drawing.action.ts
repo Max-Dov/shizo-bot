@@ -10,13 +10,15 @@ export const sendDrawing: CommandHandler = async (ctx) => {
       chat,
     } = messageToReply;
     const chatId = chat.id;
-    ctx.api.sendChatAction(chatId, 'upload_photo', { message_thread_id });
-    const drawingName = await Openai.fetchChatMessageReply('Придумай название картины');
+    const drawingName = await Openai.fetchDrawingName();
     if (drawingName) {
-      const image = await Openai.fetchDrawing(drawingName);
+      const image = await Openai.fetchDrawing(drawingPrompt(drawingName));
       if (image) {
+        ctx.api.sendChatAction(chatId, 'upload_photo', { message_thread_id });
         ctx.replyWithPhoto(image, { message_thread_id, caption: drawingName });
       }
     }
   }
 };
+
+const drawingPrompt = (drawingName: string) => `Framed detailed and expressive oil painting with name ${drawingName}.`;

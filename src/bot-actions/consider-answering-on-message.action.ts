@@ -39,7 +39,7 @@ export const considerAnsweringOnMessageAction =
           Logger.command('Bot is going to send voice!');
           sendVoice(ctx);
         } else {
-          Logger.command('Bot is going to give random answer!');
+          Logger.command('Bot is going to reply with text!');
           replyWithText(ctx);
         }
       }

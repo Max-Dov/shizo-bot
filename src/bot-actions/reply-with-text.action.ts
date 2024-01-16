@@ -20,7 +20,6 @@ export const replyWithText: CommandHandler = async (ctx) => {
       const imageDescription = await Replicateai.explainImage(imageId);
       captionWithDescription = (caption || '') + `, прикрепляю картинку: ${imageDescription}`;
     }
-    Logger.info(captionWithDescription)
 
     ctx.api.sendChatAction(chatId, 'typing', { message_thread_id });
     const userMessage = text || captionWithDescription;

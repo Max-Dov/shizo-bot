@@ -52,6 +52,24 @@ export class Openai {
     return response.choices[0].message.content;
   };
 
+  static fetchDrawingName = async () => {
+    const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.DRAWING);
+
+    Logger.info('Sending request to OpenAI (DRAWING)..');
+    const response = await Openai.instance.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ 'role': 'system', 'content': replyPreface, }],
+      temperature: 1,
+      max_tokens: 550,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+    });
+    Logger.info('Request completed (DRAWING)!');
+
+    return response.choices[0].message.content;
+  };
+
   static fetchChatMessageReaction = async (userMessage: string) => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.REACT_TO_MESSAGE);
 
@@ -94,12 +112,12 @@ export class Openai {
   static fetchDrawing = async (drawingName: string) => {
     Logger.info('Sending image request to OpenAI (IMAGE)..');
     const imageUrl = await Openai.instance.images.generate({
-      model: "dall-e-3",
+      model: 'dall-e-3',
       prompt: drawingName,
-      size: "1024x1024",
+      size: '1024x1024',
       n: 1,
-    })
+    });
     Logger.info('Request completed (IMAGE)!');
     return imageUrl.data[0].url;
-  }
+  };
 }
