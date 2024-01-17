@@ -34,4 +34,5 @@ export enum SituationTypes {
   REACT_TO_MESSAGE = 'REACT_TO_MESSAGE',
   DRAWING = 'DRAWING',
   OWN_MESSAGE = 'OWN_MESSAGE',
+  TEXT_OR_VOICE = 'TEXT_OR_VOICE',
 }

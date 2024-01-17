@@ -149,6 +149,35 @@ export class Openai {
     return imageUrl.data[0].url;
   };
 
+  /**
+   * Bot answers only "text" or "voice" to that prompt. Bases answer on user expectations.
+   */
+  static fetchAnswerType = async (chatHistory: Chat): Promise<'text' | 'voice'> => {
+    const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.TEXT_OR_VOICE);
+
+    Logger.info('Sending request to OpenAI (TEXT_OR_VOICE)..');
+    const response = await Openai.instance.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { 'role': 'system', 'content': replyPreface, },
+        ...chatHistory.messages,
+      ],
+      temperature: 1,
+      max_tokens: 100,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+    });
+    const answer = response.choices[0].message.content;
+    Logger.info('Request completed (TEXT_OR_VOICE)! Tokens: ', { answer }, response.usage);
+    if (answer !== 'text' && answer !== 'voice') {
+      Logger.warning('Open AI sent invalid response for TEXT_OR_VOICE:', answer);
+      return 'text';
+    }
+    return answer;
+  };
+
+
   static explainImage = async (imageId: string) => {
     const imageUrl = await fetchImageUrlByImageId(imageId);
     if (imageUrl) {

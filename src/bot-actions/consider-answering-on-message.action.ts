@@ -1,7 +1,8 @@
 import { CommandHandler } from '@models';
 import {
+  ChatsMemoryStorage,
   Cogito,
-  Logger,
+  Logger, Openai,
   shouldRandomlyReact,
   shouldRandomlyRespond,
   shouldRandomlySendPainting,
@@ -11,7 +12,7 @@ import { replyWithText, giveReaction, sendVoice, sendDrawing } from '@bot-action
 
 export const considerAnsweringOnMessageAction =
   ({ isHearingBotName }: { isHearingBotName: boolean }): CommandHandler =>
-    (ctx) => {
+    async (ctx) => {
       Cogito.ctx = ctx; // todo pass only ctx.api instead??
       const repliedToFirstName = ctx.message?.reply_to_message?.from?.first_name;
       const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
@@ -36,7 +37,20 @@ export const considerAnsweringOnMessageAction =
           }
         );
       }
-      if (isPmToBot || isHearingBotName || isReplyToBot || shouldSendText || shouldSendVoice) {
+      if (isPmToBot || isHearingBotName || isReplyToBot) {
+        const chatId = ctx.chat?.id;
+        if (chatId) {
+          const chat = ChatsMemoryStorage.getChat(chatId)
+          const messageTypeBotDecision = await Openai.fetchAnswerType(chat);
+          if (messageTypeBotDecision === 'voice') {
+            Logger.command('Bot is going to send voice!');
+            sendVoice(ctx);
+          } else {
+            Logger.command('Bot is going to reply with text!');
+            replyWithText(ctx);
+          }
+        }
+      } else if (shouldSendText || shouldSendVoice) {
         if (shouldSendVoice) {
           Logger.command('Bot is going to send voice!');
           sendVoice(ctx);
