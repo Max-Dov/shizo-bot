@@ -1,5 +1,5 @@
 import { CommandHandler } from '@models';
-import { Logger, Openai, prepareMessageThreadId } from '@utils';
+import { ChatsMemoryStorage, Logger, Openai, prepareMessageThreadId } from '@utils';
 import { InputFile } from 'grammy';
 
 export const sendVoice: CommandHandler = async (ctx) => {
@@ -38,14 +38,18 @@ export const sendVoice: CommandHandler = async (ctx) => {
         })
       }).catch(error => Logger.error(error.message));
 
-      const voiceFile = await Openai.fetchVoiceMessage(userMessage);
-      ctx.replyWithVoice(new InputFile(voiceFile), {
-        reply_to_message_id: message_id,
-        ...prepareMessageThreadId({
-          message_thread_id,
-          is_topic_message
-        })
-      }).catch(error => Logger.error(error.message));
+      ChatsMemoryStorage.addMessage(chatId, { role: 'user', content: userMessage });
+      const chatHistory = ChatsMemoryStorage.getChat(chatId);
+      const voiceFile = await Openai.fetchVoiceMessage(chatHistory);
+      if (voiceFile) {
+        ctx.replyWithVoice(new InputFile(voiceFile), {
+          reply_to_message_id: message_id,
+          ...prepareMessageThreadId({
+            message_thread_id,
+            is_topic_message
+          })
+        }).catch(error => Logger.error(error.message));
+      }
     }
   }
 };

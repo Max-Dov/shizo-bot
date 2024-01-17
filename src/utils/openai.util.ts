@@ -1,5 +1,13 @@
 import { OpenAI } from 'openai';
-import { ChatgptPresets, fetchImageUrlByImageId, getDayStats, Logger, SituationTypes } from '@utils';
+import {
+  Chat,
+  ChatgptPresets,
+  ChatsMemoryStorage,
+  fetchImageUrlByImageId,
+  getDayStats,
+  Logger,
+  SituationTypes
+} from '@utils';
 import { createFile, createFileSync, writeFile, writeFileSync } from 'fs-extra';
 
 export class Openai {
@@ -31,7 +39,7 @@ export class Openai {
     return response.choices[0].message.content;
   };
 
-  static fetchChatMessageReply = async (userMessage: string) => {
+  static fetchChatMessageReply = async (chatHistory: Chat) => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.REPLY_TO_MESSAGE);
 
     Logger.info('Sending request to OpenAI (REPLY_TO_MESSAGE)..');
@@ -39,7 +47,7 @@ export class Openai {
       model: 'gpt-3.5-turbo',
       messages: [
         { 'role': 'system', 'content': replyPreface, },
-        { 'role': 'user', 'content': userMessage, }
+        ...chatHistory.messages,
       ],
       temperature: 1,
       max_tokens: 550,
@@ -91,22 +99,25 @@ export class Openai {
     return response.choices[0].message.content;
   };
 
-  static fetchVoiceMessage = async (userMessage: string) => {
-    const botResponse = await Openai.fetchChatMessageReply(userMessage);
-    Logger.info('Sending voice request to OpenAI (VOICE)..');
-    const voiceMessage = await Openai.instance.audio.speech.create({
-      input: botResponse || 'Взрыв кабачка в коляске с поносом!',
-      voice: 'onyx',
-      response_format: 'opus',
-      model: 'tts-1',
-    });
-    Logger.info('Request completed (VOICE)!');
-    const fileName = `./temp/voice-${new Date().getTime()}.ogg`;
-    await createFile(fileName);
-    Logger.info('Voice file created!', fileName);
-    await writeFile(fileName, Buffer.from(await voiceMessage.arrayBuffer()));
-    Logger.info('Voice file saved!', fileName);
-    return fileName;
+  static fetchVoiceMessage = async (chatHistory: Chat) => {
+    const botResponse = await Openai.fetchChatMessageReply(chatHistory);
+    if (botResponse) {
+      ChatsMemoryStorage.addMessage(chatHistory.id, { role: 'assistant', content: botResponse });
+      Logger.info('Sending voice request to OpenAI (VOICE)..');
+      const voiceMessage = await Openai.instance.audio.speech.create({
+        input: botResponse || 'Взрыв кабачка в коляске с поносом!',
+        voice: 'onyx',
+        response_format: 'opus',
+        model: 'tts-1',
+      });
+      Logger.info('Request completed (VOICE)!');
+      const fileName = `./temp/voice-${new Date().getTime()}.ogg`;
+      await createFile(fileName);
+      Logger.info('Voice file created!', fileName);
+      await writeFile(fileName, Buffer.from(await voiceMessage.arrayBuffer()));
+      Logger.info('Voice file saved!', fileName);
+      return fileName;
+    }
   };
 
   /**

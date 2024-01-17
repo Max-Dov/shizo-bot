@@ -1,5 +1,5 @@
 import { CommandHandler } from '@models';
-import { Logger, Openai, prepareMessageThreadId } from '@utils';
+import { ChatsMemoryStorage, Logger, Openai, prepareMessageThreadId } from '@utils';
 
 export const replyWithText: CommandHandler = async (ctx) => {
   const messageToReply = ctx.message;
@@ -30,8 +30,11 @@ export const replyWithText: CommandHandler = async (ctx) => {
 
     const userMessage = text || captionWithDescription;
     if (userMessage) {
-      const reply = await Openai.fetchChatMessageReply(userMessage);
+      ChatsMemoryStorage.addMessage(chatId, { role: 'user', content: userMessage });
+      const chatHistory = ChatsMemoryStorage.getChat(chatId);
+      const reply = await Openai.fetchChatMessageReply(chatHistory);
       if (reply) {
+        ChatsMemoryStorage.addMessage(chatId, { role: 'assistant', content: reply });
         ctx.reply(reply, {
           reply_to_message_id: message_id,
           ...prepareMessageThreadId({

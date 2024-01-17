@@ -11,7 +11,7 @@ import { replyWithText, giveReaction, sendVoice, sendDrawing } from '@bot-action
 export const considerAnsweringOnMessageAction =
   ({ isHearingBotName }: { isHearingBotName: boolean }): CommandHandler =>
     (ctx) => {
-      const repliedToFirstName = ctx?.message?.reply_to_message?.from?.first_name;
+      const repliedToFirstName = ctx.message?.reply_to_message?.from?.first_name;
       const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
       const shouldSendText = shouldRandomlyRespond();
       const shouldLeaveReaction = shouldRandomlyReact();

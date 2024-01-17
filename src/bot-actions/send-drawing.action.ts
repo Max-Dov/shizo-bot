@@ -1,5 +1,5 @@
 import { CommandHandler } from '@models';
-import { Logger, Openai, prepareMessageThreadId } from '@utils';
+import { ChatsMemoryStorage, Logger, Openai, prepareMessageThreadId } from '@utils';
 
 export const sendDrawing: CommandHandler = async (ctx) => {
   const messageToReply = ctx.message;
@@ -29,6 +29,7 @@ export const sendDrawing: CommandHandler = async (ctx) => {
               is_topic_message
             })
           }).catch(error => Logger.error(error.message));
+          ChatsMemoryStorage.addMessage(chatId, { role: 'assistant', content: `Прикрепляю мою картину: ${drawingName}` });
           ctx.replyWithPhoto(image, {
             caption: drawingName,
             ...prepareMessageThreadId({
@@ -38,7 +39,7 @@ export const sendDrawing: CommandHandler = async (ctx) => {
           }).catch(error => Logger.error(error.message));
         }
       } catch (error) {
-        Logger.error('sendDrawing action crashed - probably due to content filters:', (error as Error).message)
+        Logger.error('sendDrawing action crashed - probably due to content filters:', (error as Error).message);
       }
     }
   }

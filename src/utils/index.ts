@@ -9,3 +9,4 @@ export * from './should-randomly-respond.util';
 export * from './verify-ctx-fields.util';
 export * from './fetch-image-url-by-image-id.util';
 export * from './prepare-message-thread-id.util';
+export * from './chats-memory-storage.util';
