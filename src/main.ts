@@ -5,7 +5,7 @@ import {
   Logger,
   Openai,
   Storage,
-  getRedErrorMessage,
+  getRedErrorMessage, Cogito,
 } from '@utils';
 import { ChatCommands } from '@constants';
 import { prepareDivination, considerAnsweringOnMessageAction } from '@bot-actions';
@@ -29,6 +29,11 @@ if (envVariableSuccessIndicator) {
 if (isStartupSuccessful) {
   Openai.initialize();
   Logger.goodInfo('OpenAI client: created!');
+}
+
+if (isStartupSuccessful) {
+  Cogito.initialize();
+  Logger.goodInfo('Bot Cogito service: initialized!');
 }
 
 /**

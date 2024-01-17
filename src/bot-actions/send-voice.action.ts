@@ -40,15 +40,19 @@ export const sendVoice: CommandHandler = async (ctx) => {
 
       ChatsMemoryStorage.addMessage(chatId, { role: 'user', content: userMessage });
       const chatHistory = ChatsMemoryStorage.getChat(chatId);
-      const voiceFile = await Openai.fetchVoiceMessage(chatHistory);
-      if (voiceFile) {
-        ctx.replyWithVoice(new InputFile(voiceFile), {
-          reply_to_message_id: message_id,
-          ...prepareMessageThreadId({
-            message_thread_id,
-            is_topic_message
-          })
-        }).catch(error => Logger.error(error.message));
+      const botResponse = await Openai.fetchChatMessageReply(chatHistory);
+      if (botResponse) {
+        ChatsMemoryStorage.addMessage(chatHistory.id, { role: 'assistant', content: botResponse });
+        const voiceFile = await Openai.fetchVoiceMessage(botResponse);
+        if (voiceFile) {
+          ctx.replyWithVoice(new InputFile(voiceFile), {
+            reply_to_message_id: message_id,
+            ...prepareMessageThreadId({
+              message_thread_id,
+              is_topic_message
+            })
+          }).catch(error => Logger.error(error.message));
+        }
       }
     }
   }

@@ -1,5 +1,6 @@
 import { CommandHandler } from '@models';
 import {
+  Cogito,
   Logger,
   shouldRandomlyReact,
   shouldRandomlyRespond,
@@ -11,6 +12,7 @@ import { replyWithText, giveReaction, sendVoice, sendDrawing } from '@bot-action
 export const considerAnsweringOnMessageAction =
   ({ isHearingBotName }: { isHearingBotName: boolean }): CommandHandler =>
     (ctx) => {
+      Cogito.ctx = ctx; // todo pass only ctx.api instead??
       const repliedToFirstName = ctx.message?.reply_to_message?.from?.first_name;
       const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
       const shouldSendText = shouldRandomlyRespond();
@@ -48,7 +50,7 @@ export const considerAnsweringOnMessageAction =
         giveReaction(ctx);
       }
       if (shouldDrawPicture) {
-        Logger.command("Bot is going to draw picture!");
+        Logger.command('Bot is going to draw picture!');
         sendDrawing(ctx);
       }
     };
