@@ -5,7 +5,7 @@ import {
   Logger,
   Openai,
   Storage,
-  getRedErrorMessage, Cogito,
+  getRedErrorMessage, Cogito, logEnvVariables,
 } from '@utils';
 import { ChatCommands } from '@constants';
 import { prepareDivination, considerAnsweringOnMessageAction } from '@bot-actions';
@@ -90,6 +90,7 @@ try {
     bot!.start();
     Logger.goodInfo('Bot status: ready and working!');
     Logger.info('Startup time:', new Date().getTime() - startTime, 'ms');
+    logEnvVariables();
   }
 } catch (error) {
   Logger.error('Bot unexpected error!', getRedErrorMessage(error));

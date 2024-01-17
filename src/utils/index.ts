@@ -11,3 +11,4 @@ export * from './fetch-image-url-by-image-id.util';
 export * from './prepare-message-thread-id.util';
 export * from './chats-memory-storage.util';
 export * from './cogito.util';
+export * from './log-env-variables.util';

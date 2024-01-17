@@ -26,7 +26,8 @@ export class ChatsMemoryStorage {
       chat = { id: chatId, messages: [] };
       ChatsMemoryStorage.chats[chatId] = chat;
     }
-    chat.messages.push(message);
+    const numberOfMessagesToKeep = Number(process.env.NUMBER_OF_MESSAGES_IN_MEMORY)
+    chat.messages = chat.messages.slice(numberOfMessagesToKeep - 1).concat(message);
   };
 
   static getChat = (chatId: number) => {
