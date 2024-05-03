@@ -9,6 +9,7 @@ export const sendDrawing: CommandHandler = async (ctx) => {
       message_thread_id,
       is_topic_message,
       chat,
+      caption,
     } = messageToReply;
     const chatId = chat.id;
     ctx.api.sendChatAction(chatId, 'upload_photo', {
@@ -29,7 +30,7 @@ export const sendDrawing: CommandHandler = async (ctx) => {
               is_topic_message
             })
           }).catch(error => Logger.error(error.message));
-          ChatsMemoryStorage.addMessage(chatId, { role: 'assistant', content: `Прикрепляю мою картину: ${drawingName}` });
+          ChatsMemoryStorage.addMessage(chatId, { role: 'assistant', content: `Посмотрите мою картину: ${drawingName}` });
           ctx.replyWithPhoto(image, {
             caption: drawingName,
             ...prepareMessageThreadId({
@@ -45,4 +46,4 @@ export const sendDrawing: CommandHandler = async (ctx) => {
   }
 };
 
-const drawingPrompt = (drawingName: string) => `Framed detailed and expressive oil painting with name ${drawingName}.`;
+const drawingPrompt = (drawingName: string) => `Framed expressive oil painting with name ${drawingName}.`;

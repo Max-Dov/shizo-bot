@@ -1,14 +1,19 @@
 import { OpenAI } from 'openai';
 import {
-  Chat,
   ChatgptPresets,
-  ChatsMemoryStorage,
   fetchImageUrlByImageId,
   getDayStats,
   Logger,
   SituationTypes
 } from '@utils';
-import { createFile, createFileSync, writeFile, writeFileSync } from 'fs-extra';
+import { createFile, writeFile } from 'fs-extra';
+import { Chat } from '@models';
+import {
+  CHAT_GPT_IMAGE_VERSION,
+  CHAT_GPT_TEXT_VERSION,
+  CHAT_GPT_VISION_VERSION,
+  CHAT_GPT_VOICE_VERSION
+} from '@constants';
 
 export class Openai {
   static instance: OpenAI;
@@ -23,7 +28,7 @@ export class Openai {
 
     Logger.info('Sending request to OpenAI (DIVINATION)..');
     const response = await Openai.instance.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: CHAT_GPT_TEXT_VERSION,
       messages: [
         { 'role': 'system', 'content': divinationPreface, },
         { 'role': 'user', 'content': `Предскажи мой день. Сегодня ${timeOfDay} ${dayOfWeek}.` }
@@ -44,7 +49,7 @@ export class Openai {
 
     Logger.info('Sending request to OpenAI (REPLY_TO_MESSAGE)..');
     const response = await Openai.instance.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: CHAT_GPT_TEXT_VERSION,
       messages: [
         { 'role': 'system', 'content': replyPreface, },
         ...chatHistory.messages,
@@ -60,12 +65,12 @@ export class Openai {
     return response.choices[0].message.content;
   };
 
-  static fetchDrawingName = async () => {
+  static fetchDrawingName = async (userMessage?: string) => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.DRAWING);
 
     Logger.info('Sending request to OpenAI (DRAWING)..');
     const response = await Openai.instance.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: CHAT_GPT_TEXT_VERSION,
       messages: [{ 'role': 'system', 'content': replyPreface, }],
       temperature: 1,
       max_tokens: 550,
@@ -83,7 +88,7 @@ export class Openai {
 
     Logger.info('Sending request to OpenAI (OWN_MESSAGE)..');
     const response = await Openai.instance.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: CHAT_GPT_TEXT_VERSION,
       messages: [{ 'role': 'system', 'content': replyPreface, }],
       temperature: 1,
       max_tokens: 550,
@@ -101,7 +106,7 @@ export class Openai {
 
     Logger.info('Sending request to OpenAI (REACT_TO_MESSAGE)..');
     const response = await Openai.instance.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: CHAT_GPT_TEXT_VERSION,
       messages: [
         { 'role': 'system', 'content': replyPreface, },
         { 'role': 'user', 'content': userMessage, }
@@ -123,7 +128,7 @@ export class Openai {
       input: message,
       voice: 'onyx',
       response_format: 'opus',
-      model: 'tts-1',
+      model: CHAT_GPT_VOICE_VERSION,
     });
     Logger.info('Request completed (VOICE)!');
     const fileName = `./temp/voice-${new Date().getTime()}.ogg`;
@@ -140,7 +145,7 @@ export class Openai {
   static fetchDrawing = async (drawingName: string) => {
     Logger.info('Sending image request to OpenAI (IMAGE)..');
     const imageUrl = await Openai.instance.images.generate({
-      model: 'dall-e-3',
+      model: CHAT_GPT_IMAGE_VERSION,
       prompt: drawingName,
       size: '1024x1024',
       n: 1,
@@ -157,7 +162,7 @@ export class Openai {
 
     Logger.info('Sending request to OpenAI (TEXT_OR_VOICE)..');
     const response = await Openai.instance.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: CHAT_GPT_TEXT_VERSION,
       messages: [
         { 'role': 'system', 'content': replyPreface, },
         ...chatHistory.messages,
@@ -183,7 +188,7 @@ export class Openai {
     if (imageUrl) {
       Logger.info('Sending "Explain Image" request to OPENAI (EXPLAIN_IMAGE)..');
       const response = await Openai.instance.chat.completions.create({
-        model: 'gpt-4-vision-preview',
+        model: CHAT_GPT_VISION_VERSION,
         max_tokens: 500,
         messages: [{
           role: 'user', content: [{ 'type': 'text', 'text': 'Что на картинке?' }, {

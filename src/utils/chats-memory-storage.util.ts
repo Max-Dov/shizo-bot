@@ -1,26 +1,15 @@
-type Chats = {
-  [key in number]?: Chat;
-}
-
-// TODO move to proper file
-export interface Chat {
-  id: number;
-  messages: Array<Message>;
-}
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { Chat, ChatMessage } from '@models';
 
 /**
  * Simple util to store chat messages so bot won't lose context.
  * It is not done via persistent storage in order to keep private messages nowhere but in application memory.
  */
 export class ChatsMemoryStorage {
-  static chats: Chats = {};
+  static chats: {
+    [key in Chat['id']]?: Chat;
+  } = {};
 
-  static addMessage = (chatId: number, message: Message) => {
+  static addMessage = (chatId: number, message: ChatMessage) => {
     let chat = ChatsMemoryStorage.chats[chatId];
     if (!chat) {
       chat = { id: chatId, messages: [] };

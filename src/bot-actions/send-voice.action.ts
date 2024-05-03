@@ -4,6 +4,7 @@ import { InputFile } from 'grammy';
 
 export const sendVoice: CommandHandler = async (ctx) => {
   const messageToReply = ctx.message;
+  const isPmToBot = ctx.chat?.type === 'private';
   if (messageToReply) {
     const {
       message_thread_id,
@@ -14,13 +15,10 @@ export const sendVoice: CommandHandler = async (ctx) => {
       is_topic_message,
     } = messageToReply;
     const chatId = chat.id;
-    ctx.api.sendChatAction(chatId, 'record_voice', {
-      ...prepareMessageThreadId({
-        message_thread_id,
-        is_topic_message
-      })
-    }).catch(error => Logger.error(error.message));
 
+    /**
+     * Trying to read an image attachment if message contains any.
+     */
     const imageId = ctx.message?.photo?.[0].file_id;
     let captionWithDescription = caption;
     if (imageId) {
@@ -29,8 +27,12 @@ export const sendVoice: CommandHandler = async (ctx) => {
       captionWithDescription = (caption || '') + `, прикрепляю картинку: ${imageDescription}`;
     }
 
+
     const userMessage = text || captionWithDescription;
     if (userMessage) {
+      /**
+       * Leaving "bot is recording audio" chat status
+       */
       ctx.api.sendChatAction(chatId, 'record_voice', {
         ...prepareMessageThreadId({
           message_thread_id,
@@ -45,13 +47,18 @@ export const sendVoice: CommandHandler = async (ctx) => {
         ChatsMemoryStorage.addMessage(chatHistory.id, { role: 'assistant', content: botResponse });
         const voiceFile = await Openai.fetchVoiceMessage(botResponse);
         if (voiceFile) {
-          ctx.replyWithVoice(new InputFile(voiceFile), {
-            reply_to_message_id: message_id,
-            ...prepareMessageThreadId({
-              message_thread_id,
-              is_topic_message
-            })
-          }).catch(error => Logger.error(error.message));
+          const inputFile = new InputFile(voiceFile);
+          if (isPmToBot) {
+            ctx.api.sendVoice(chatId, inputFile).catch(error => Logger.error(error.message));
+          } else {
+            ctx.replyWithVoice(inputFile, {
+              reply_to_message_id: message_id,
+              ...prepareMessageThreadId({
+                message_thread_id,
+                is_topic_message
+              })
+            }).catch(error => Logger.error(error.message));
+          }
         }
       }
     }
