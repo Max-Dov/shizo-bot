@@ -8,3 +8,7 @@ You can obtain your own API token by talking to [BotFather](https://telegram.me/
 I recommend creating separate `.env.local` file for your own configuration. 
 It would be ignored by Git. 
 To make app read new config file, update env file name in `~/src/main.ts` file.
+
+# ChatGPT presets
+`chatgpt-presets.default.json` files provides default "system" messages to a bot.
+You need these messages to set up a tone for bots' replies.
