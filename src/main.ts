@@ -4,7 +4,6 @@ import {
   ChatgptPresets,
   Logger,
   Openai,
-  Storage,
   getRedErrorMessage, Cogito, logEnvVariables,
 } from '@utils';
 import { ChatCommands } from '@constants';
@@ -34,17 +33,6 @@ if (isStartupSuccessful) {
 if (isStartupSuccessful) {
   Cogito.initialize();
   Logger.goodInfo('Bot Cogito service: initialized!');
-}
-
-/**
- * Loading or creating highly efficient persistent JSON database from disc.
- */
-try {
-  await Storage.loadStorage();
-  Logger.goodInfo('JSON storage: loaded!');
-} catch (error) {
-  Logger.error('JSON storage initialization/load failed.', getRedErrorMessage(error));
-  isStartupSuccessful = false;
 }
 
 /**
