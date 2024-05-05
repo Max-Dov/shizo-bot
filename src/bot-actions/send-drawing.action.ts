@@ -30,7 +30,7 @@ export const sendDrawing: CommandHandler = async (ctx) => {
               is_topic_message
             })
           }).catch(error => Logger.error(error.message));
-          ChatsMemoryStorage.addMessage(chatId, { role: 'assistant', content: `Посмотрите мою картину: ${drawingName}` });
+          ChatsMemoryStorage.addBotMessage(chatId, `Посмотрите мою картину: ${drawingName}`);
           ctx.replyWithPhoto(image, {
             caption: drawingName,
             ...prepareMessageThreadId({

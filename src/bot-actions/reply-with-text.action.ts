@@ -39,11 +39,11 @@ export const replyWithText: CommandHandler = async (ctx) => {
         })
       }).catch(error => Logger.error(error.message));
 
-      ChatsMemoryStorage.addMessage(chatId, { role: 'user', content: userMessage });
+      ChatsMemoryStorage.addUserMessage(chatId, userMessage);
       const chatHistory = ChatsMemoryStorage.getChat(chatId);
       const reply = await Openai.fetchChatMessageReply(chatHistory);
       if (reply) {
-        ChatsMemoryStorage.addMessage(chatId, { role: 'assistant', content: reply });
+        ChatsMemoryStorage.addBotMessage(chatId, reply);
         if (isPmToBot) {
           ctx.api.sendMessage(chatId, reply).catch(error => Logger.error(error.message))
         } else {

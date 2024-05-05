@@ -15,9 +15,27 @@ export class ChatsMemoryStorage {
       chat = { id: chatId, messages: [] };
       ChatsMemoryStorage.chats[chatId] = chat;
     }
-    const numberOfMessagesToKeep = Number(process.env.NUMBER_OF_MESSAGES_IN_MEMORY)
+    // todo summarize every 10 messages over NUMBER_OF_MESSAGES_IN_MEMORY limit
+    const numberOfMessagesToKeep = Number(process.env.NUMBER_OF_MESSAGES_IN_MEMORY);
     chat.messages = chat.messages.slice(numberOfMessagesToKeep - 1).concat(message);
   };
+
+  static addUserMessage = (chatId: number, content: string) => {
+    ChatsMemoryStorage.addMessage(chatId, { content, role: 'user' });
+  };
+
+  static addBotMessage = (chatId: number, content: string) => {
+    ChatsMemoryStorage.addMessage(chatId, { content, role: 'assistant' });
+  };
+
+  static updateContext = (chatId: number, newContext: string) => {
+    let chat = ChatsMemoryStorage.chats[chatId];
+    if (!chat) {
+      chat = {id: chatId, messages: []};
+      ChatsMemoryStorage.chats[chatId] = chat;
+    }
+    chat.context = newContext;
+  }
 
   static getChat = (chatId: number) => {
     let chat = ChatsMemoryStorage.chats[chatId];
@@ -26,5 +44,5 @@ export class ChatsMemoryStorage {
       ChatsMemoryStorage.chats[chatId] = chat;
     }
     return chat;
-  }
+  };
 }
