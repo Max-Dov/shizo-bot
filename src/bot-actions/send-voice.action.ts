@@ -1,26 +1,29 @@
 import { CommandHandler } from '@models';
-import { ChatsMemoryStorage, Logger, Openai, prepareMessageThreadId } from '@utils';
+import {
+  ChatsMemoryStorage,
+  getIsPmToBot,
+  Logger,
+  Openai,
+  replyWithVoice,
+  sendChatAction,
+  sendVoice as sendVoiceToChat
+} from '@utils';
 import { InputFile } from 'grammy';
 
 export const sendVoice: CommandHandler = async (ctx) => {
+  Logger.command('Bot is going to send voice!');
   const messageToReply = ctx.message;
   if (messageToReply) {
     const {
-      message_thread_id,
       chat,
       text,
       caption,
-      message_id,
-      is_topic_message,
     } = messageToReply;
     const chatId = chat.id;
-    ctx.api.sendChatAction(chatId, 'record_voice', {
-      ...prepareMessageThreadId({
-        message_thread_id,
-        is_topic_message
-      })
-    }).catch(error => Logger.error(error.message));
 
+    /**
+     * Trying to read an image attachment if message contains any.
+     */
     const imageId = ctx.message?.photo?.[0].file_id;
     let captionWithDescription = caption;
     if (imageId) {
@@ -29,29 +32,24 @@ export const sendVoice: CommandHandler = async (ctx) => {
       captionWithDescription = (caption || '') + `, прикрепляю картинку: ${imageDescription}`;
     }
 
+
     const userMessage = text || captionWithDescription;
     if (userMessage) {
-      ctx.api.sendChatAction(chatId, 'record_voice', {
-        ...prepareMessageThreadId({
-          message_thread_id,
-          is_topic_message
-        })
-      }).catch(error => Logger.error(error.message));
+      sendChatAction(ctx, 'record_voice');
 
-      ChatsMemoryStorage.addMessage(chatId, { role: 'user', content: userMessage });
+      ChatsMemoryStorage.addUserMessage(chatId, userMessage);
       const chatHistory = ChatsMemoryStorage.getChat(chatId);
       const botResponse = await Openai.fetchChatMessageReply(chatHistory);
       if (botResponse) {
-        ChatsMemoryStorage.addMessage(chatHistory.id, { role: 'assistant', content: botResponse });
+        ChatsMemoryStorage.addBotMessage(chatHistory.id, botResponse);
         const voiceFile = await Openai.fetchVoiceMessage(botResponse);
         if (voiceFile) {
-          ctx.replyWithVoice(new InputFile(voiceFile), {
-            reply_to_message_id: message_id,
-            ...prepareMessageThreadId({
-              message_thread_id,
-              is_topic_message
-            })
-          }).catch(error => Logger.error(error.message));
+          const inputFile = new InputFile(voiceFile);
+          if (getIsPmToBot(ctx)) {
+            sendVoiceToChat(ctx, inputFile);
+          } else {
+            replyWithVoice(ctx, inputFile);
+          }
         }
       }
     }

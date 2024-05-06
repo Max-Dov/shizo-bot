@@ -1,0 +1,25 @@
+import { Logger } from './logger.util';
+
+/**
+ * Logs important variables to console.
+ */
+export const logEnvVariables = () => {
+  const {
+    CHANCE_TO_RANDOMLY_RESPOND,
+    CHANCE_TO_RANDOMLY_REACT,
+    CHANCE_TO_RANDOMLY_SEND_VOICE,
+    CHANCE_TO_RANDOMLY_DRAW_PICTURE,
+    CHANCE_TO_SEND_OWN_MESSAGE,
+    MINUTES_INTERVAL_TO_SEND_OWN_MESSAGES,
+    NUMBER_OF_MESSAGES_IN_MEMORY,
+  } = process.env;
+  Logger.info('Env variables:', {
+    CHANCE_TO_RANDOMLY_RESPOND,
+    CHANCE_TO_RANDOMLY_REACT,
+    CHANCE_TO_RANDOMLY_SEND_VOICE,
+    CHANCE_TO_RANDOMLY_DRAW_PICTURE,
+    CHANCE_TO_SEND_OWN_MESSAGE,
+    MINUTES_INTERVAL_TO_SEND_OWN_MESSAGES,
+    NUMBER_OF_MESSAGES_IN_MEMORY,
+  })
+}

@@ -4,11 +4,11 @@ import {
   ChatgptPresets,
   Logger,
   Openai,
-  Storage,
-  getRedErrorMessage, Cogito,
+  getRedErrorMessage, Cogito, logEnvVariables,
 } from '@utils';
 import { ChatCommands } from '@constants';
-import { prepareDivination, considerAnsweringOnMessageAction } from '@bot-actions';
+import { considerAnsweringOnMessageAction, drawImage } from '@bot-actions';
+import { voiceMessage } from './bot-actions/voice-message.action';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
@@ -37,17 +37,6 @@ if (isStartupSuccessful) {
 }
 
 /**
- * Loading or creating highly efficient persistent JSON database from disc.
- */
-try {
-  await Storage.loadStorage();
-  Logger.goodInfo('JSON storage: loaded!');
-} catch (error) {
-  Logger.error('JSON storage initialization/load failed.', getRedErrorMessage(error));
-  isStartupSuccessful = false;
-}
-
-/**
  * Loading chatgpt prompt presets.
  */
 try {
@@ -67,11 +56,13 @@ try {
   if (isStartupSuccessful) {
     bot = new Bot(process.env.BOT_TOKEN || '');
     bot.api.setMyCommands([
-      { command: ChatCommands.DIVINATION, description: 'Предскажи мой день?' },
-    ]);
-    bot.command(...prepareDivination());
-    bot.hears(botName, considerAnsweringOnMessageAction({isHearingBotName: true}));
-    bot.on('message', considerAnsweringOnMessageAction({isHearingBotName: false}));
+      { command: ChatCommands.VOICE_MESSAGE, description: 'Звонок другу..' },
+      { command: ChatCommands.DRAW_IMAGE, description: 'Ща нарисуем..' },
+    ]).catch(Logger.errorMessage);
+    bot.command(...drawImage());
+    bot.command(...voiceMessage());
+    bot.hears(botName, considerAnsweringOnMessageAction({ isHearingBotName: true }));
+    bot.on('message', considerAnsweringOnMessageAction({ isHearingBotName: false }));
     bot.catch((error) => {
       Logger.error('Bot got an unexpected error!', getRedErrorMessage(error));
     });
@@ -90,6 +81,7 @@ try {
     bot!.start();
     Logger.goodInfo('Bot status: ready and working!');
     Logger.info('Startup time:', new Date().getTime() - startTime, 'ms');
+    logEnvVariables();
   }
 } catch (error) {
   Logger.error('Bot unexpected error!', getRedErrorMessage(error));
