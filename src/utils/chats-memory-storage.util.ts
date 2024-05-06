@@ -18,7 +18,7 @@ export class ChatsMemoryStorage {
     }
     // todo summarize every 10 messages over NUMBER_OF_MESSAGES_IN_MEMORY limit
     const numberOfMessagesToKeep = Number(process.env.NUMBER_OF_MESSAGES_IN_MEMORY);
-    chat.messages = chat.messages.slice(numberOfMessagesToKeep - 1).concat(message);
+    chat.messages = chat.messages.slice(1 - numberOfMessagesToKeep).concat(message);
   };
 
   static addUserMessage = (chatId: number, content: string) => {

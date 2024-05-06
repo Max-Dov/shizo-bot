@@ -13,7 +13,7 @@ export const replyWithText: CommandHandler = async (ctx) => {
   Logger.command('Going to reply with text!');
   const messageToReply = ctx.message;
   if (!messageToReply) {
-    Logger.error('Can not extract message from context!')
+    Logger.error('Can not extract message from context!');
     return;
   }
   const {
@@ -41,12 +41,15 @@ export const replyWithText: CommandHandler = async (ctx) => {
     const chatHistory = ChatsMemoryStorage.getChat(chatId);
     const reply = await Openai.fetchChatMessageReply(chatHistory);
     if (reply) {
-      ChatsMemoryStorage.addBotMessage(chatId, reply);
-      if (getIsPmToBot(ctx)) {
-        sendMessageToChat(ctx, reply);
-      } else {
-        replyToMessage(ctx, reply);
-      }
+      const replies = reply.split(/<\.+>/); // bot places "<...>" between messages.
+      replies.forEach(reply => {
+        ChatsMemoryStorage.addBotMessage(chatId, reply);
+        if (getIsPmToBot(ctx)) {
+          sendMessageToChat(ctx, reply);
+        } else {
+          replyToMessage(ctx, reply);
+        }
+      });
     }
   }
 };
