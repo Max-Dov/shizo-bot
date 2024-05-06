@@ -1,4 +1,5 @@
 import { Chat, ChatMessage } from '@models';
+import { Logger } from './logger.util';
 
 /**
  * Simple util to store chat messages so bot won't lose context.
@@ -12,7 +13,7 @@ export class ChatsMemoryStorage {
   static addMessage = (chatId: number, message: ChatMessage) => {
     let chat = ChatsMemoryStorage.chats[chatId];
     if (!chat) {
-      chat = { id: chatId, messages: [] };
+      chat = createChat(chatId);
       ChatsMemoryStorage.chats[chatId] = chat;
     }
     // todo summarize every 10 messages over NUMBER_OF_MESSAGES_IN_MEMORY limit
@@ -31,18 +32,24 @@ export class ChatsMemoryStorage {
   static updateContext = (chatId: number, newContext: string) => {
     let chat = ChatsMemoryStorage.chats[chatId];
     if (!chat) {
-      chat = {id: chatId, messages: []};
+      chat = createChat(chatId);
       ChatsMemoryStorage.chats[chatId] = chat;
     }
     chat.context = newContext;
-  }
+  };
 
   static getChat = (chatId: number) => {
     let chat = ChatsMemoryStorage.chats[chatId];
     if (!chat) {
-      chat = { id: chatId, messages: [] };
+      chat = createChat(chatId);
       ChatsMemoryStorage.chats[chatId] = chat;
     }
     return chat;
   };
 }
+
+const createChat = (chatId: number): Chat => {
+  const newChat = { id: chatId, messages: [] };
+  Logger.debug('Created new chat in app memory.');
+  return newChat;
+};

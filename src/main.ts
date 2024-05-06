@@ -7,7 +7,8 @@ import {
   getRedErrorMessage, Cogito, logEnvVariables,
 } from '@utils';
 import { ChatCommands } from '@constants';
-import { prepareDivination, considerAnsweringOnMessageAction } from '@bot-actions';
+import { considerAnsweringOnMessageAction, drawImage } from '@bot-actions';
+import { voiceMessage } from './bot-actions/voice-message.action';
 
 const startTime = new Date().getTime();
 let isStartupSuccessful = true;
@@ -55,11 +56,13 @@ try {
   if (isStartupSuccessful) {
     bot = new Bot(process.env.BOT_TOKEN || '');
     bot.api.setMyCommands([
-      { command: ChatCommands.DIVINATION, description: 'Предскажи мой день?' },
-    ]);
-    bot.command(...prepareDivination());
-    bot.hears(botName, considerAnsweringOnMessageAction({isHearingBotName: true}));
-    bot.on('message', considerAnsweringOnMessageAction({isHearingBotName: false}));
+      { command: ChatCommands.VOICE_MESSAGE, description: 'Звонок другу..' },
+      { command: ChatCommands.DRAW_IMAGE, description: 'Ща нарисуем..' },
+    ]).catch(Logger.errorMessage);
+    bot.command(...drawImage());
+    bot.command(...voiceMessage());
+    bot.hears(botName, considerAnsweringOnMessageAction({ isHearingBotName: true }));
+    bot.on('message', considerAnsweringOnMessageAction({ isHearingBotName: false }));
     bot.catch((error) => {
       Logger.error('Bot got an unexpected error!', getRedErrorMessage(error));
     });

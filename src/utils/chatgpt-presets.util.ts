@@ -29,7 +29,6 @@ export class ChatgptPresets {
 }
 
 export enum SituationTypes {
-  DIVINATION = 'DIVINATION',
   REPLY_TO_MESSAGE = 'REPLY_TO_MESSAGE',
   REACT_TO_MESSAGE = 'REACT_TO_MESSAGE',
   DRAWING = 'DRAWING',

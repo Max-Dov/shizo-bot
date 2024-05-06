@@ -7,7 +7,7 @@ import { ChatsMemoryStorage } from './chats-memory-storage.util';
  * Util that allows bot to post messages on its own behalf.
  */
 export class Cogito {
-  static ctx: Context | null = null;
+  static api: Context['api'] | null = null;
 
   static initialize = () => {
     const intervalInMinutes = Number(process.env.MINUTES_INTERVAL_TO_SEND_OWN_MESSAGES);
@@ -16,11 +16,11 @@ export class Cogito {
       // todo lmao when to clean interval?
       Logger.info('Setting up setInterval to post own messages.');
       setInterval(async () => {
-        if (Cogito.ctx !== null) {
+        if (Cogito.api !== null) {
           for (const chatId of Object.keys(ChatsMemoryStorage.chats)) {
             if (Math.random() < chanceToSendMessage) {
               Logger.info(`Bot will send random message to ${chatId}!`);
-              await sendOwnRandomMessage(Cogito.ctx, Number(chatId));
+              await sendOwnRandomMessage(Cogito.api, Number(chatId));
               Logger.info('Bot did send random message!');
             }
           }

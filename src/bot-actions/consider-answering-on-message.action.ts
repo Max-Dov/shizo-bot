@@ -1,7 +1,7 @@
 import { CommandHandler } from '@models';
 import {
   ChatsMemoryStorage,
-  Cogito,
+  Cogito, getIsPmToBot, getIsReplyToBot,
   Logger, Openai,
   shouldRandomlyReact,
   shouldRandomlyRespond,
@@ -10,61 +10,51 @@ import {
 } from '@utils';
 import { replyWithText, giveReaction, sendVoice, sendDrawing } from '@bot-actions';
 
-export const considerAnsweringOnMessageAction =
-  ({ isHearingBotName }: { isHearingBotName: boolean }): CommandHandler =>
-    async (ctx) => {
-      Cogito.ctx = ctx; // todo pass only ctx.api instead??
-      const repliedToFirstName = ctx.message?.reply_to_message?.from?.first_name;
-      const isReplyToBot = repliedToFirstName === process.env.BOT_NAME;
-      const shouldSendText = shouldRandomlyRespond();
-      const shouldLeaveReaction = shouldRandomlyReact();
-      const shouldSendVoice = shouldRandomlySendVoice();
-      const shouldDrawPicture = shouldRandomlySendPainting();
-      const isPmToBot = ctx.chat?.type === 'private';
-      {
-        const username = ctx.from?.username;
-        const firstName = ctx.from?.first_name; // in case user set profile to private
-        Logger.info(
-          'Message from', { username, firstName }, 'just passing by.',
-          'Bot electrochemistry:', {
-            isHearingBotName,
-            isReplyToBot,
-            isPmToBot,
-            shouldSendText,
-            shouldSendVoice,
-            shouldLeaveReaction,
-            shouldDrawPicture,
-          }
-        );
-      }
-      if (isPmToBot || isHearingBotName || isReplyToBot) {
-        const chatId = ctx.chat?.id;
-        if (chatId) {
-          const chat = ChatsMemoryStorage.getChat(chatId)
-          const messageTypeBotDecision = await Openai.fetchAnswerType(chat);
-          if (messageTypeBotDecision === 'voice') {
-            Logger.command('Bot is going to send voice!');
-            sendVoice(ctx);
-          } else {
-            Logger.command('Bot is going to reply with text!');
-            replyWithText(ctx);
-          }
+type Props = { isHearingBotName: boolean };
+
+export const considerAnsweringOnMessageAction = ({ isHearingBotName }: Props): CommandHandler =>
+  async (ctx) => {
+    Cogito.api = ctx.api;
+    const isReplyToBot = getIsReplyToBot(ctx);
+    const isPmToBot = getIsPmToBot(ctx);
+    const shouldSendText = shouldRandomlyRespond();
+    const shouldLeaveReaction = shouldRandomlyReact();
+    const shouldSendVoice = shouldRandomlySendVoice();
+    const shouldDrawPicture = shouldRandomlySendPainting();
+    {
+      Logger.debug(
+        'Message just passing by.', 'Bot electrochemistry:', {
+          isHearingBotName,
+          isReplyToBot,
+          isPmToBot,
+          shouldSendText,
+          shouldSendVoice,
+          shouldLeaveReaction,
+          shouldDrawPicture,
         }
-      } else if (shouldSendText || shouldSendVoice) {
-        if (shouldSendVoice) {
-          Logger.command('Bot is going to send voice!');
+      );
+    }
+    if (isPmToBot || isHearingBotName || isReplyToBot) {
+      const chatId = ctx.chat?.id;
+      if (chatId) {
+        const messageTypeBotDecision = await Openai.fetchAnswerType(
+          ChatsMemoryStorage.getChat(chatId)
+        );
+        if (messageTypeBotDecision === 'voice') {
           sendVoice(ctx);
         } else {
-          Logger.command('Bot is going to reply with text!');
           replyWithText(ctx);
         }
       }
-      if (shouldLeaveReaction) {
-        Logger.command('Bot is going to leave reaction!');
-        giveReaction(ctx);
-      }
-      if (shouldDrawPicture) {
-        Logger.command('Bot is going to draw picture!');
-        sendDrawing(ctx);
-      }
-    };
+    } else if (shouldSendText) {
+      replyWithText(ctx);
+    } else if (shouldSendVoice) {
+      sendVoice(ctx);
+    }
+    if (shouldLeaveReaction) {
+      giveReaction(ctx);
+    }
+    if (shouldDrawPicture) {
+      sendDrawing(ctx);
+    }
+  };

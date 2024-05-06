@@ -22,32 +22,10 @@ export class Openai {
     apiKey: process.env.OPEN_AI_KEY,
   });
 
-  static fetchDivination = async () => {
-    const { timeOfDay, dayOfWeek } = getDayStats();
-    const divinationPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.DIVINATION);
-
-    Logger.info('Sending request to OpenAI (DIVINATION)..');
-    const response = await Openai.instance.chat.completions.create({
-      model: CHAT_GPT_TEXT_VERSION,
-      messages: [
-        { 'role': 'system', 'content': divinationPreface, },
-        { 'role': 'user', 'content': `Предскажи мой день. Сегодня ${timeOfDay} ${dayOfWeek}.` }
-      ],
-      temperature: 1,
-      max_tokens: 150,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-    });
-    Logger.info('Request completed (DIVINATION)! Tokens: ', response.usage);
-
-    return response.choices[0].message.content;
-  };
-
   static fetchChatMessageReply = async (chatHistory: Chat) => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.REPLY_TO_MESSAGE);
 
-    Logger.info('Sending request to OpenAI (REPLY_TO_MESSAGE)..');
+    Logger.info('Sending OpenAI API request (REPLY_TO_MESSAGE)..');
     const response = await Openai.instance.chat.completions.create({
       model: CHAT_GPT_TEXT_VERSION,
       messages: [
@@ -65,10 +43,11 @@ export class Openai {
     return response.choices[0].message.content;
   };
 
-  static fetchDrawingName = async (userMessage?: string) => {
+  // todo painting theme based on chat context
+  static fetchDrawingName = async () => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.DRAWING);
 
-    Logger.info('Sending request to OpenAI (DRAWING)..');
+    Logger.info('Sending OpenAI API request (DRAWING)..');
     const response = await Openai.instance.chat.completions.create({
       model: CHAT_GPT_TEXT_VERSION,
       messages: [{ 'role': 'system', 'content': replyPreface, }],
@@ -86,7 +65,7 @@ export class Openai {
   static fetchOwnMessage = async () => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.OWN_MESSAGE);
 
-    Logger.info('Sending request to OpenAI (OWN_MESSAGE)..');
+    Logger.info('Sending OpenAI API request (OWN_MESSAGE)..');
     const response = await Openai.instance.chat.completions.create({
       model: CHAT_GPT_TEXT_VERSION,
       messages: [{ 'role': 'system', 'content': replyPreface, }],
@@ -104,7 +83,7 @@ export class Openai {
   static fetchChatMessageReaction = async (userMessage: string) => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.REACT_TO_MESSAGE);
 
-    Logger.info('Sending request to OpenAI (REACT_TO_MESSAGE)..');
+    Logger.info('Sending OpenAI API request (REACT_TO_MESSAGE)..');
     const response = await Openai.instance.chat.completions.create({
       model: CHAT_GPT_TEXT_VERSION,
       messages: [
@@ -123,7 +102,7 @@ export class Openai {
   };
 
   static fetchVoiceMessage = async (message: string) => {
-    Logger.info('Sending voice request to OpenAI (VOICE)..');
+    Logger.info('Sending OpenAI API request (VOICE)..');
     const voiceMessage = await Openai.instance.audio.speech.create({
       input: message,
       voice: 'onyx',
@@ -143,7 +122,7 @@ export class Openai {
    * Note: content policy is too strict on this one and often returns 400.
    */
   static fetchDrawing = async (drawingName: string) => {
-    Logger.info('Sending image request to OpenAI (IMAGE)..');
+    Logger.info('Sending OpenAI API request (IMAGE)..');
     const imageUrl = await Openai.instance.images.generate({
       model: CHAT_GPT_IMAGE_VERSION,
       prompt: drawingName,
@@ -160,7 +139,7 @@ export class Openai {
   static fetchAnswerType = async (chatHistory: Chat): Promise<'text' | 'voice'> => {
     const replyPreface = ChatgptPresets.getRandomPresetForSituation(SituationTypes.TEXT_OR_VOICE);
 
-    Logger.info('Sending request to OpenAI (TEXT_OR_VOICE)..');
+    Logger.info('Sending OpenAI API request (TEXT_OR_VOICE)..');
     const response = await Openai.instance.chat.completions.create({
       model: CHAT_GPT_TEXT_VERSION,
       messages: [
@@ -186,7 +165,7 @@ export class Openai {
   static explainImage = async (imageId: string) => {
     const imageUrl = await fetchImageUrlByImageId(imageId);
     if (imageUrl) {
-      Logger.info('Sending "Explain Image" request to OPENAI (EXPLAIN_IMAGE)..');
+      Logger.info('Sending OpenAI API request (EXPLAIN_IMAGE)..');
       const response = await Openai.instance.chat.completions.create({
         model: CHAT_GPT_VISION_VERSION,
         max_tokens: 500,

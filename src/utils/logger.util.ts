@@ -27,6 +27,12 @@ export class Logger {
     ...messages,
   );
 
+  static debug = (...messages: any[]) => console.debug(
+    chalk.bold(LogTypes.DEBUG),
+    chalk.bgGray(Logger.timeNow()),
+    ...messages,
+  );
+
   /**
    * Prints info message in green for morale boost.
    * Expected use case is "success checkpoints", like successful request.
@@ -42,6 +48,11 @@ export class Logger {
     chalk.bgGray(Logger.timeNow()),
     ...messages,
   );
+
+  /**
+   * Callback for Promise.catch handlers on telegram API calls.
+   */
+  static errorMessage = (error: any) => Logger.error(error.message);
 
   static warning = (...messages: any[]) => console.warn(
     chalk.bold.bgYellow(LogTypes.WARNING),
@@ -60,5 +71,6 @@ enum LogTypes {
   INFO = 'INFO',
   ERROR = 'ERROR',
   WARNING = 'WARNING',
-  COMMAND = 'COMMAND'
+  COMMAND = 'COMMAND',
+  DEBUG = 'DEBUG',
 }
